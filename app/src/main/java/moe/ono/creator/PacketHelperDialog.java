@@ -101,7 +101,7 @@ import moe.ono.util.SyncUtils;
 import moe.ono.util.Utils;
 
 @SuppressLint({"ResourceType", "StaticFieldLeak"})
-public class PacketHelperDialog extends BottomPopupView {
+公共 class PacketHelperDialog extends BottomPopupView {
     private final List<String> presetelems; // 存储预设元素的列表
     private final Map<String, String> elemContentMap; // 存储元素名称和内容的映射
     private final SharedPreferences sharedPreferences;
@@ -395,77 +395,87 @@ public class PacketHelperDialog extends BottomPopupView {
 
                         Logger.d("ElementSender-send-by-longmsg", json);
                         QPacketHelperKt.sendPacket("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", json);
-                    } else if (rbSendBy == R.id.rb_send_by_forwarding){
-                        String data = "{\"2\": {\n" +
-                                "  \"1\": \"MultiMsg\",\n" +
-                                "  \"2\": {\n" +
-                                "    \"1\": [\n" +
-                                "      {\n" +
-                                "        \"1\": {\n" +
-                                "          \"1\": "+etUin.getText()+",\n" +
-                                "          \"5\": {},\n" +
-                                "          \"6\": {},\n" +
-                                "          \"7\": {},\n" +
-                                "          \"8\": {\n" +
-                                "            \"1\": 10001,\n" +
-                                "            \"4\": \"@ouom_pub\",\n" +
-                                "            \"5\": 2\n" +
-                                "          }\n" +
-                                "        },\n" +
-                                "        \"2\": {\n" +
-                                "          \"1\": 82,\n" +
-                                "          \"2\": {},\n" +
-                                "          \"3\": {},\n" +
-                                "          \"4\": "+ThreadLocalRandom.current().nextInt(0, 10000000)+",\n" +
-                                "          \"5\": "+ThreadLocalRandom.current().nextInt(0, 100000)+",\n" +
-                                "          \"6\": "+ThreadLocalRandom.current().nextInt(0, 10000000)+",\n" +
-                                "          \"7\": 1,\n" +
-                                "          \"8\": 0,\n" +
-                                "          \"9\": 0,\n" +
-                                "          \"15\": {\n" +
-                                "            \"1\": 0,\n" +
-                                "            \"2\": 0,\n" +
-                                "            \"3\": 0,\n" +
-                                "            \"4\": \"\",\n" +
-                                "            \"5\": \"\"\n" +
-                                "          }\n" +
-                                "        },\n" +
-                                "        \"3\": {\n" +
-                                "          \"1\": {\n" +
-                                "            \"2\": " + text +
-                                "          }\n" +
-                                "        }\n" +
-                                "      }\n" +
-                                "    ]\n" +
-                                "  }\n" +
-                                "}}\n".trim();
+                    	} else if (rbSendBy == R.id.rb_send_by_forwarding) {
+                        // --- 嘿客定制：时间+卡片内容自定义版 ---
+                        String uin = etUin.getText().toString().trim();
+                        String nick = etNickname.getText().toString().trim();
+                        String hint = etHint.getText().toString().trim(); // 格式: 时间|卡片文字
 
-                        Logger.d("data", data);
+                        long time = System.currentTimeMillis() / 1000;
+                        String summary = "查看1条转发消息";
+
+                        // 解析脚本参数
+                        if (!hint.isEmpty()) {
+                            if (hint.contains("|")) {
+                                String[] p = hint.split("\\|", 2);
+                                if (p[0].length() == 12) {
+                                    try {
+                                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMddHHmm", java.util.Locale.CHINA);
+                                        time = sdf.parse(p[0]).getTime() / 1000;
+                                    } catch (Exception ignored) {}
+                                }
+                                summary = p[1].replace("\\n", "\n");
+                            } else {
+                                summary = hint.replace("\\n", "\n");
+                            }
+                        }
+
+                        // 构造 PB 数据
+                        String data = "{\n" +
+							"  \"1\": \"" + summary.replace("\"", "\\\"") + "\",\n" +
+							"  \"2\": {\n" +
+							"    \"1\": \"MultiMsg\",\n" +
+							"    \"2\": {\n" +
+							"      \"1\": [\n" +
+							"        {\n" +
+							"          \"1\": {\n" +
+							"            \"1\": " + (uin.isEmpty() ? "10001" : uin) + ",\n" +
+							"            \"8\": {\n" +
+							"              \"1\": 10001,\n" +
+							"              \"4\": \"" + (nick.isEmpty() ? "嘿客" : nick) + "\",\n" +
+							"              \"5\": 2\n" +
+							"            }\n" +
+							"          },\n" +
+							"          \"2\": {\n" +
+							"            \"1\": 82,\n" +
+							"            \"4\": 12345,\n" +
+							"            \"5\": " + time + ",\n" + 
+							"            \"6\": 67890,\n" +
+							"            \"7\": 1\n" +
+							"          },\n" +
+							"          \"3\": {\n" +
+							"            \"1\": {\n" +
+							"              \"2\": \"" + text.replace("\"", "\\\"") + "\"\n" + 
+							"            }\n" +
+							"          }\n" +
+							"        }\n" +
+							"      ]\n" +
+							"    }\n" +
+							"  }\n" +
+							"}".trim();
+
                         byte[] protoBytes = QPacketHelperKt.buildMessage(data);
                         byte[] compressedData = compressData(protoBytes);
-
                         long target = Long.parseLong(chatType == GROUP ? peer : getUinFromUid(peer));
 
                         String json = "{\n" +
-                                "  \"2\": {\n" +
-                                "    \"1\": " + (chatType == C2C ? 1 : 3) + ",\n" +
-                                "    \"2\": {\n" +
-                                "      \"2\": "+ target +"\n" +
-                                "    },\n" +
-                                "    \"4\": \"hex->"+bytesToHex(compressedData)+"\"\n" +
-                                "  },\n" +
-                                "  \"15\": {\n" +
-                                "    \"1\": 4,\n" +
-                                "    \"2\": 2,\n" +
-                                "    \"3\": 9,\n" +
-                                "    \"4\": 0\n" +
-                                "  }\n" +
-                                "}".trim();
+							"  \"2\": {\n" +
+							"    \"1\": " + (chatType == C2C ? 1 : 3) + ",\n" +
+							"    \"2\": {\n" +
+							"      \"2\": " + target + "\n" +
+							"    },\n" +
+							"    \"4\": \"hex->" + bytesToHex(compressedData) + "\"\n" +
+							"  },\n" +
+							"  \"15\": {\n" +
+							"    \"1\": 4,\n" +
+							"    \"2\": 2,\n" +
+							"    \"3\": 9,\n" +
+							"    \"4\": 0\n" +
+							"  }\n" +
+							"}".trim();
 
-                        Logger.d("ElementSender-send-by-forward", json);
                         QPacketHelperKt.sendPacket("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", json);
-                    }
-                    Toasts.success(getContext(), "请求成功");
+                        Toasts.success(getContext(), "嘿客，发送成功");
 
                     if (rbSendBy == R.id.rb_send_by_directly) dialog.dismiss();
                     fadeOutAndClearBlur(decorView);
