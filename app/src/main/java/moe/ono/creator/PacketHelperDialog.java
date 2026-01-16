@@ -101,7 +101,7 @@ import moe.ono.util.SyncUtils;
 import moe.ono.util.Utils;
 
 @SuppressLint({"ResourceType", "StaticFieldLeak"})
-public class PacketHelperDialog extends BottomPopupView {
+公共 class PacketHelperDialog extends BottomPopupView {
     private final List<String> presetelems; // 存储预设元素的列表
     private final Map<String, String> elemContentMap; // 存储元素名称和内容的映射
     private final SharedPreferences sharedPreferences;
@@ -395,7 +395,7 @@ public class PacketHelperDialog extends BottomPopupView {
 
                         Logger.d("ElementSender-send-by-longmsg", json);
                         QPacketHelperKt.sendPacket("trpc.group.long_msg_interface.MsgService.SsoSendLongMsg", json);
-                    } else if (rbSendBy == R.id.rb_send_by_forwarding){
+                       } else if (rbSendBy == R.id.rb_send_by_forwarding){
                         String data = "{\"2\": {\n" +
                                 "  \"1\": \"MultiMsg\",\n" +
                                 "  \"2\": {\n" +
@@ -479,6 +479,7 @@ public class PacketHelperDialog extends BottomPopupView {
                 }
 
             });
+
 
             btnSend.setOnLongClickListener(v -> {
                 String send_type = rb[0].getText().toString();
